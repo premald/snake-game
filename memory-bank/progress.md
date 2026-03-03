@@ -11,6 +11,9 @@
 ## Notable Notes
 - sessionStorage access is wrapped in try/catch to handle restricted environments.
 
+## Agent Workflow Log
+- 2026-03-03: Player name feature implemented via agent workflow (plan → build → review → test). Files touched: `index.html`, `src/main.js`, `styles.css`.
+
 ## Known Gaps
 - localStorage for high score is not try/catch guarded.
 - Small-grid edge case in `createInitialState` (pre-existing).
