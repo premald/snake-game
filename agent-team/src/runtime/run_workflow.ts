@@ -2,6 +2,7 @@ import { Agent, run } from "@openai/agents";
 import { createAgents } from "./agents_sdk";
 import { TeamConfig } from "../types";
 import { loadDefaults } from "./orchestrator";
+import { executeReadTool } from "../tools/read_tools";
 
 type StepResult = {
   label: string;
@@ -38,26 +39,54 @@ function taskPrompt(config: TeamConfig) {
   ].join("\n");
 }
 
+async function loadMemoryBank() {
+  const files = [
+    "memory-bank/projectbrief.md",
+    "memory-bank/productContext.md",
+    "memory-bank/activeContext.md",
+    "memory-bank/systemPatterns.md",
+    "memory-bank/techContext.md",
+    "memory-bank/progress.md",
+  ];
+
+  const sections: string[] = [];
+  for (const file of files) {
+    const result = await executeReadTool("read_file", { path: file });
+    if (result.ok && result.data && typeof result.data === "object") {
+      const data = result.data as { content?: string };
+      if (data.content) {
+        sections.push(`## ${file}\n${data.content}`);
+        continue;
+      }
+    }
+    sections.push(`## ${file}\n(Unavailable or empty)`);
+  }
+
+  return sections.join("\n\n");
+}
+
 async function main() {
   const { teamConfig } = loadDefaults();
   const { coordinator, planner, builder, reviewer } = createAgents();
 
   const steps: StepResult[] = [];
   const prompt = taskPrompt(teamConfig);
+  const memoryContext = await loadMemoryBank();
+  const contextBlock = `\n\n== Memory Bank Context ==\n${memoryContext}\n`;
 
   console.log("== Agent Workflow Start ==");
 
   console.log("\n[Planner] Creating plan...");
   const planResult = await runWithApprovals(
     planner,
-    `${prompt}\nReturn a step-by-step plan with files to change.`
+    `${prompt}\nReturn a step-by-step plan with files to change.${contextBlock}`
   );
   steps.push(formatStep("Planner", String(planResult.finalOutput ?? "")));
 
   console.log("\n[Builder] Implementing changes...");
   const buildResult = await runWithApprovals(
     builder,
-    `${prompt}\nUse the plan above and implement the changes now.`
+    `${prompt}\nUse the plan above and implement the changes now.${contextBlock}`
   );
   steps.push(formatStep("Builder", String(buildResult.finalOutput ?? "")));
 
@@ -65,7 +94,8 @@ async function main() {
   const reviewResult = await runWithApprovals(
     reviewer,
     "Review the recent changes for correctness, missing edge cases, and UX. " +
-      "If issues are found, provide specific file/line guidance."
+      "If issues are found, provide specific file/line guidance." +
+      contextBlock
   );
   steps.push(formatStep("Reviewer", String(reviewResult.finalOutput ?? "")));
 
@@ -76,6 +106,15 @@ async function main() {
       "Report the output and whether tests passed."
   );
   steps.push(formatStep("Tests", String(testResult.finalOutput ?? "")));
+
+  console.log("\n[Coordinator] Updating memory bank progress log...");
+  const logResult = await runWithApprovals(
+    coordinator,
+    "Update memory-bank/progress.md with a short entry under 'Agent Workflow Log' " +
+      "describing this workflow (plan/build/review/test) and the files touched. " +
+      "Use read_file to fetch the current file and write_file to update it."
+  );
+  steps.push(formatStep("Memory Log", String(logResult.finalOutput ?? "")));
 
   console.log("\n== Agent Workflow Summary ==");
   for (const step of steps) {
