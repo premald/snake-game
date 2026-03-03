@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>Snake</h1>
+      <section id="name-overlay" class="name-overlay" aria-label="Player setup">
+        <form id="name-form" class="name-form">
+          <label for="player-name-input">Enter player name</label>
+          <input id="player-name-input" name="playerName" type="text" maxlength="24" required />
+          <button type="submit">Start Game</button>
+        </form>
+      </section>
+      <section class="hud">
+        <p>Player: <span id="player-name">-</span></p>
+        <p>Score: <span id="score">0</span></p>
+        <p>High Score: <span id="high-score">0</span></p>
+        <p id="status">Running</p>
+      </section>
+      <section
+        id="game-grid"
+        class="grid"
+        role="application"
+        aria-label="Snake game board"
+      ></section>
+      <section class="controls" aria-label="Game controls">
+        <button type="button" data-dir="up">Up</button>
+        <div class="controls-row">
+          <button type="button" data-dir="left">Left</button>
+          <button type="button" id="pause-btn">Pause</button>
+          <button type="button" data-dir="right">Right</button>
+        </div>
+        <div class="controls-row">
+          <button type="button" data-dir="down">Down</button>
+          <button type="button" id="restart-btn">Restart</button>
+        </div>
+      </section>
+      <p class="hint">Arrow keys or WASD to move. Space to pause. R to restart.</p>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

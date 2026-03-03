@@ -1,0 +1,6 @@
+node_modules
+/dist
+.DS_Store
+.env
+agent-team/node_modules
+agent-team/dist

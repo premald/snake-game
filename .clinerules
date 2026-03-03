@@ -1,0 +1,8 @@
+# Project Memory Bank Rules
+
+- Keep the memory bank in `memory-bank/`.
+- Update the memory bank after material changes, decisions, or new features.
+- Record active tasks in `memory-bank/activeContext.md`.
+- Record architecture/structure in `memory-bank/systemPatterns.md`.
+- Record stack/tooling in `memory-bank/techContext.md`.
+- Record progress and done items in `memory-bank/progress.md`.

@@ -1,0 +1,17 @@
+{
+  "name": "snake-game-agent-team",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Agent team wiring for snake-game",
+  "scripts": {
+    "build": "tsc -p .",
+    "run:task": "node dist/runtime/run_task.js",
+    "run:workflow": "node dist/runtime/run_workflow.js"
+  },
+  "dependencies": {
+    "@openai/agents": "*"
+  },
+  "devDependencies": {
+    "typescript": "*"
+  }
+}

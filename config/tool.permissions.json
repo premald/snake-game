@@ -1,0 +1,11 @@
+{
+  "autoApprove": [
+    "search_docs",
+    "read_file"
+  ],
+  "requireApproval": [
+    "write_file",
+    "run_command",
+    "deploy"
+  ]
+}
