@@ -83,12 +83,30 @@ async function main() {
   );
   steps.push(formatStep("Planner", String(planResult.finalOutput ?? "")));
 
+  console.log("\n[Coordinator] Persisting plan to memory bank...");
+  const planPersistResult = await runWithApprovals(
+    coordinator,
+    "Update memory-bank/activeContext.md with the latest requirements and plan from the Planner output. " +
+      "Keep it concise and replace any previous plan content. " +
+      "Use read_file to fetch the file and write_file to update it."
+  );
+  steps.push(formatStep("Plan Log", String(planPersistResult.finalOutput ?? "")));
+
   console.log("\n[Builder] Implementing changes...");
   const buildResult = await runWithApprovals(
     builder,
     `${prompt}\nUse the plan above and implement the changes now.${contextBlock}`
   );
   steps.push(formatStep("Builder", String(buildResult.finalOutput ?? "")));
+
+  console.log("\n[Coordinator] Logging build summary...");
+  const buildPersistResult = await runWithApprovals(
+    coordinator,
+    "Append a short build summary to memory-bank/progress.md under 'Agent Workflow Log'. " +
+      "Include date, task summary, and files changed. " +
+      "Use read_file to fetch and write_file to update."
+  );
+  steps.push(formatStep("Build Log", String(buildPersistResult.finalOutput ?? "")));
 
   console.log("\n[Reviewer] Reviewing changes...");
   const reviewResult = await runWithApprovals(
@@ -98,6 +116,15 @@ async function main() {
       contextBlock
   );
   steps.push(formatStep("Reviewer", String(reviewResult.finalOutput ?? "")));
+
+  console.log("\n[Coordinator] Logging review notes...");
+  const reviewPersistResult = await runWithApprovals(
+    coordinator,
+    "Append reviewer notes to memory-bank/progress.md under 'Agent Workflow Log'. " +
+      "Keep it short and reference any required follow-ups. " +
+      "Use read_file to fetch and write_file to update."
+  );
+  steps.push(formatStep("Review Log", String(reviewPersistResult.finalOutput ?? "")));
 
   console.log("\n[Coordinator] Running tests via run_command...");
   const testResult = await runWithApprovals(
