@@ -27,13 +27,10 @@ function formatStep(label: string, output: string) {
   return { label, output: output ?? "(no output)" };
 }
 
-function taskPrompt(config: TeamConfig) {
+function taskPrompt(config: TeamConfig, task: string) {
   return [
-    "Task: Add a player name feature with UI to ask for the name and store it for the session.",
+    `Task: ${task}`,
     "Requirements:",
-    "- Add UI to collect player name before gameplay.",
-    "- Store name in sessionStorage and reuse it for the session.",
-    "- Show the current player name in the HUD.",
     "- Use write_file tool to modify files; do not just describe changes.",
     `Repo root is set via AGENT_TEAM_REPO_ROOT. Model: ${config.defaultModel}.`,
   ].join("\n");
@@ -69,8 +66,14 @@ async function main() {
   const { teamConfig } = loadDefaults();
   const { coordinator, planner, builder, reviewer } = createAgents();
 
+  const task = process.argv.slice(2).join(" ").trim();
+  if (!task) {
+    console.error("Usage: npm run run:workflow -- \"your task\"");
+    process.exit(1);
+  }
+
   const steps: StepResult[] = [];
-  const prompt = taskPrompt(teamConfig);
+  const prompt = taskPrompt(teamConfig, task);
   const memoryContext = await loadMemoryBank();
   const contextBlock = `\n\n== Memory Bank Context ==\n${memoryContext}\n`;
 

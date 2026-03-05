@@ -16,6 +16,10 @@ Simple browser-based Snake game.
 
 ## Controls
 
-- **Arrow keys**: Move snake
+- **Arrow keys / WASD**: Move snake
+- **On-screen buttons**: Move snake (mobile/desktop)
+- **Swipe on game grid (touch devices)**: Change direction
 - **Space**: Pause / Resume
 - **R**: Restart game
+
+> Swipe and other direction inputs do not allow an immediate reverse direction.

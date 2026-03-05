@@ -9,6 +9,7 @@ import {
 
 const TICK_MS = 150;
 const PLAYER_NAME_KEY = "snake.playerName";
+const SWIPE_MIN_DISTANCE = 24;
 const gridEl = document.getElementById("game-grid");
 const scoreEl = document.getElementById("score");
 const highScoreEl = document.getElementById("high-score");
@@ -25,9 +26,12 @@ let queuedDirection = null;
 let highScore = loadHighScore();
 let playerName = loadPlayerName();
 let storageAvailable = true;
+let touchStartX = null;
+let touchStartY = null;
 
 initGrid(state.gridSize);
 setupPlayerName();
+setupSwipeControls();
 render();
 
 setInterval(() => {
@@ -78,7 +82,7 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   event.preventDefault();
-  queuedDirection = dir;
+  queueDirection(dir);
 });
 
 document.querySelectorAll("[data-dir]").forEach((button) => {
@@ -87,7 +91,7 @@ document.querySelectorAll("[data-dir]").forEach((button) => {
       return;
     }
     const dirName = button.getAttribute("data-dir");
-    queuedDirection = DIRECTIONS[dirName];
+    queueDirection(DIRECTIONS[dirName]);
   });
 });
 
@@ -137,6 +141,67 @@ function setupPlayerName() {
     pauseBtn.focus();
     render();
   });
+}
+
+function setupSwipeControls() {
+  gridEl.addEventListener(
+    "touchstart",
+    (event) => {
+      if (!playerName || event.touches.length !== 1) {
+        return;
+      }
+      const touch = event.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    },
+    { passive: true }
+  );
+
+  gridEl.addEventListener(
+    "touchend",
+    (event) => {
+      if (!playerName || touchStartX === null || touchStartY === null) {
+        return;
+      }
+      const touch = event.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      touchStartX = null;
+      touchStartY = null;
+
+      if (Math.abs(deltaX) < SWIPE_MIN_DISTANCE && Math.abs(deltaY) < SWIPE_MIN_DISTANCE) {
+        return;
+      }
+
+      let dir = null;
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        dir = deltaX > 0 ? DIRECTIONS.right : DIRECTIONS.left;
+      } else {
+        dir = deltaY > 0 ? DIRECTIONS.down : DIRECTIONS.up;
+      }
+
+      if (dir) {
+        event.preventDefault();
+        queueDirection(dir);
+      }
+    },
+    { passive: false }
+  );
+}
+
+function queueDirection(nextDirection) {
+  if (!nextDirection) {
+    return;
+  }
+  const baseDirection = queuedDirection || state.direction;
+  if (isOppositeDirection(baseDirection, nextDirection)) {
+    return;
+  }
+  queuedDirection = nextDirection;
+}
+
+function isOppositeDirection(a, b) {
+  return a.x === -b.x && a.y === -b.y;
 }
 
 function initGrid(gridSize) {
