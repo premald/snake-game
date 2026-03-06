@@ -49,6 +49,7 @@ async function loadMemoryBank() {
     "memory-bank/projectbrief.md",
     "memory-bank/productContext.md",
     "memory-bank/activeContext.md",
+    "memory-bank/features.md",
     "memory-bank/systemPatterns.md",
     "memory-bank/techContext.md",
     "memory-bank/progress.md",
@@ -108,9 +109,11 @@ async function main() {
   await bestEffort("Update planned features", async () => {
     const featurePlanResult = await runWithApprovals(
       coordinator,
-      "Update memory-bank/features.md: add the new feature(s) from this task under 'Planned' " +
-        "if they are not already listed. Preserve existing items. " +
-        "Use read_file then write_file."
+      "Update memory-bank/features.md before implementation. " +
+        "For any feature in this task that is not already implemented, ensure it appears in 'Planned'. " +
+        "If the feature is in 'Backlog', keep it in backlog while planned unless you clearly split it into sub-items. " +
+        "Do not duplicate the same item across sections with different wording. " +
+        "Preserve existing unrelated items. Use read_file then write_file."
     );
     steps.push(formatStep("Feature Plan Log", String(featurePlanResult.finalOutput ?? "")));
   });
@@ -136,8 +139,10 @@ async function main() {
   await bestEffort("Update implemented features", async () => {
     const featureDoneResult = await runWithApprovals(
       coordinator,
-      "Update memory-bank/features.md: move any features from 'Planned' to 'Implemented' " +
-        "that were completed in this task. Preserve existing items. " +
+      "Update memory-bank/features.md after implementation. " +
+        "For each feature completed in this task: add it to 'Implemented', remove it from 'Planned', and remove it from 'Backlog'. " +
+        "Leave partially completed items in 'Backlog' (and optionally 'Planned' if still in progress). " +
+        "Preserve existing unrelated items and avoid duplicate entries across sections. " +
         "Use read_file then write_file."
     );
     steps.push(formatStep("Feature Done Log", String(featureDoneResult.finalOutput ?? "")));
