@@ -6,3 +6,5 @@
 - Record architecture/structure in `memory-bank/systemPatterns.md`.
 - Record stack/tooling in `memory-bank/techContext.md`.
 - Record progress and done items in `memory-bank/progress.md`.
+- Track implemented/planned features in `memory-bank/features.md`.
+- Track test cases and coverage in `memory-bank/testBacklog.md`.

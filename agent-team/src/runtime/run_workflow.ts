@@ -27,6 +27,14 @@ function formatStep(label: string, output: string) {
   return { label, output: output ?? "(no output)" };
 }
 
+async function bestEffort(label: string, fn: () => Promise<void>) {
+  try {
+    await fn();
+  } catch (error) {
+    console.warn(`Warning: ${label} failed`, error);
+  }
+}
+
 function taskPrompt(config: TeamConfig, task: string) {
   return [
     `Task: ${task}`,
@@ -87,13 +95,25 @@ async function main() {
   steps.push(formatStep("Planner", String(planResult.finalOutput ?? "")));
 
   console.log("\n[Coordinator] Persisting plan to memory bank...");
-  const planPersistResult = await runWithApprovals(
-    coordinator,
-    "Update memory-bank/activeContext.md with the latest requirements and plan from the Planner output. " +
-      "Keep it concise and replace any previous plan content. " +
-      "Use read_file to fetch the file and write_file to update it."
-  );
-  steps.push(formatStep("Plan Log", String(planPersistResult.finalOutput ?? "")));
+  await bestEffort("Persist plan", async () => {
+    const planPersistResult = await runWithApprovals(
+      coordinator,
+      "Update memory-bank/activeContext.md with the latest requirements and plan from the Planner output. " +
+        "Keep it concise and preserve unrelated sections. " +
+        "Use read_file to fetch the file and write_file to update it."
+    );
+    steps.push(formatStep("Plan Log", String(planPersistResult.finalOutput ?? "")));
+  });
+
+  await bestEffort("Update planned features", async () => {
+    const featurePlanResult = await runWithApprovals(
+      coordinator,
+      "Update memory-bank/features.md: add the new feature(s) from this task under 'Planned' " +
+        "if they are not already listed. Preserve existing items. " +
+        "Use read_file then write_file."
+    );
+    steps.push(formatStep("Feature Plan Log", String(featurePlanResult.finalOutput ?? "")));
+  });
 
   console.log("\n[Builder] Implementing changes...");
   const buildResult = await runWithApprovals(
@@ -103,13 +123,25 @@ async function main() {
   steps.push(formatStep("Builder", String(buildResult.finalOutput ?? "")));
 
   console.log("\n[Coordinator] Logging build summary...");
-  const buildPersistResult = await runWithApprovals(
-    coordinator,
-    "Append a short build summary to memory-bank/progress.md under 'Agent Workflow Log'. " +
-      "Include date, task summary, and files changed. " +
-      "Use read_file to fetch and write_file to update."
-  );
-  steps.push(formatStep("Build Log", String(buildPersistResult.finalOutput ?? "")));
+  await bestEffort("Build log", async () => {
+    const buildPersistResult = await runWithApprovals(
+      coordinator,
+      "Append a short build summary to memory-bank/progress.md under 'Agent Workflow Log'. " +
+        "Include date, task summary, and files changed. " +
+        "Use read_file to fetch and write_file to update."
+    );
+    steps.push(formatStep("Build Log", String(buildPersistResult.finalOutput ?? "")));
+  });
+
+  await bestEffort("Update implemented features", async () => {
+    const featureDoneResult = await runWithApprovals(
+      coordinator,
+      "Update memory-bank/features.md: move any features from 'Planned' to 'Implemented' " +
+        "that were completed in this task. Preserve existing items. " +
+        "Use read_file then write_file."
+    );
+    steps.push(formatStep("Feature Done Log", String(featureDoneResult.finalOutput ?? "")));
+  });
 
   console.log("\n[Reviewer] Reviewing changes...");
   const reviewResult = await runWithApprovals(
@@ -121,13 +153,15 @@ async function main() {
   steps.push(formatStep("Reviewer", String(reviewResult.finalOutput ?? "")));
 
   console.log("\n[Coordinator] Logging review notes...");
-  const reviewPersistResult = await runWithApprovals(
-    coordinator,
-    "Append reviewer notes to memory-bank/progress.md under 'Agent Workflow Log'. " +
-      "Keep it short and reference any required follow-ups. " +
-      "Use read_file to fetch and write_file to update."
-  );
-  steps.push(formatStep("Review Log", String(reviewPersistResult.finalOutput ?? "")));
+  await bestEffort("Review log", async () => {
+    const reviewPersistResult = await runWithApprovals(
+      coordinator,
+      "Append reviewer notes to memory-bank/progress.md under 'Agent Workflow Log'. " +
+        "Keep it short and reference any required follow-ups. " +
+        "Use read_file to fetch and write_file to update."
+    );
+    steps.push(formatStep("Review Log", String(reviewPersistResult.finalOutput ?? "")));
+  });
 
   console.log("\n[Coordinator] Running tests via run_command...");
   const testResult = await runWithApprovals(
@@ -137,14 +171,26 @@ async function main() {
   );
   steps.push(formatStep("Tests", String(testResult.finalOutput ?? "")));
 
+  await bestEffort("Update test backlog", async () => {
+    const testBacklogResult = await runWithApprovals(
+      coordinator,
+      "If this task added a feature or fixed a bug, update memory-bank/testBacklog.md with " +
+        "new or adjusted test cases. Otherwise, make no changes. " +
+        "Use read_file then write_file."
+    );
+    steps.push(formatStep("Test Backlog Log", String(testBacklogResult.finalOutput ?? "")));
+  });
+
   console.log("\n[Coordinator] Updating memory bank progress log...");
-  const logResult = await runWithApprovals(
-    coordinator,
-    "Update memory-bank/progress.md with a short entry under 'Agent Workflow Log' " +
-      "describing this workflow (plan/build/review/test) and the files touched. " +
-      "Use read_file to fetch the current file and write_file to update it."
-  );
-  steps.push(formatStep("Memory Log", String(logResult.finalOutput ?? "")));
+  await bestEffort("Workflow log", async () => {
+    const logResult = await runWithApprovals(
+      coordinator,
+      "Update memory-bank/progress.md with a short entry under 'Agent Workflow Log' " +
+        "describing this workflow (plan/build/review/test) and the files touched. " +
+        "Use read_file to fetch the current file and write_file to update it."
+    );
+    steps.push(formatStep("Memory Log", String(logResult.finalOutput ?? "")));
+  });
 
   console.log("\n== Agent Workflow Summary ==");
   for (const step of steps) {
