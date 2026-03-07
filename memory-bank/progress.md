@@ -17,6 +17,9 @@
 - 2026-03-05: Reviewer notes appended — confirmed player-name gating and HUD updates; follow-up required: add try/catch guard for high-score localStorage and address small-grid `createInitialState` edge case.
 - 2026-03-05: Documented workflow update (plan → build → review → test) and touched files summary. Files touched: `memory-bank/progress.md`.
 - 2026-03-05: Added swipe controls on the game grid and unified direction queue logic. Files touched: `src/main.js`, `README.md`.
+- 2026-03-07: Appended short build summary to Agent Workflow Log. Files changed: `memory-bank/progress.md`.
+- 2026-03-07: Reviewer notes appended — swipe/queue updates look good; follow-ups: add localStorage try/catch guard and fix small-grid `createInitialState` edge case.
+- 2026-03-07: Logged workflow update (plan → build → review → test) and files touched. Files touched: `memory-bank/progress.md`.
 
 ## Known Gaps
 - localStorage for high score is not try/catch guarded.

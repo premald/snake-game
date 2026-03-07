@@ -10,17 +10,55 @@
     <main class="app">
       <h1>Snake</h1>
       <section id="name-overlay" class="name-overlay" aria-label="Player setup">
-        <form id="name-form" class="name-form">
-          <label for="player-name-input">Enter player name</label>
-          <input id="player-name-input" name="playerName" type="text" maxlength="24" required />
-          <button type="submit">Start Game</button>
-        </form>
+        <div id="name-form" class="name-form">
+          <p id="player-modal-title">Select or create player</p>
+
+          <div class="player-picker" id="existing-player-group">
+            <label for="existing-player-select">Existing players</label>
+            <select id="existing-player-select"></select>
+            <button type="button" id="use-player-btn">Use Selected Player</button>
+          </div>
+
+          <div class="player-new">
+            <label for="player-name-input">New player name</label>
+            <input id="player-name-input" name="playerName" type="text" maxlength="24" />
+            <button type="button" id="add-player-btn">Add Player</button>
+          </div>
+        </div>
       </section>
       <section class="hud">
         <p>Player: <span id="player-name">-</span></p>
         <p>Score: <span id="score">0</span></p>
         <p>High Score: <span id="high-score">0</span></p>
         <p id="status">Running</p>
+      </section>
+      <section class="settings" aria-label="Game settings">
+        <h2>Settings</h2>
+        <div class="settings-grid">
+          <label for="setting-speed">Speed</label>
+          <select id="setting-speed" name="speed">
+            <option value="slow">Slow</option>
+            <option value="normal">Normal</option>
+            <option value="fast">Fast</option>
+          </select>
+
+          <label for="setting-grid-size">Grid Size</label>
+          <select id="setting-grid-size" name="gridSize">
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+
+          <label for="setting-swipe">Enable Swipe</label>
+          <input id="setting-swipe" name="swipeEnabled" type="checkbox" />
+
+          <label for="setting-sound">Enable Sound</label>
+          <input id="setting-sound" name="soundEnabled" type="checkbox" />
+        </div>
+        <div class="settings-actions">
+          <button type="button" id="settings-apply-btn">Apply</button>
+          <button type="button" id="settings-reset-btn">Reset Defaults</button>
+        </div>
       </section>
       <section
         id="game-grid"
@@ -38,7 +76,13 @@
         <div class="controls-row">
           <button type="button" data-dir="down">Down</button>
           <button type="button" id="restart-btn">Restart</button>
+          <button type="button" id="change-player-btn">Change Player</button>
         </div>
+      </section>
+      <section class="leaderboard" aria-label="Session leaderboard">
+        <h2>Session Leaderboard</h2>
+        <p id="leaderboard-empty">No completed runs yet.</p>
+        <ol id="session-leaderboard"></ol>
       </section>
       <p class="hint">Arrow keys or WASD to move. Space to pause. R to restart.</p>
     </main>
