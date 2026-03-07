@@ -109,10 +109,12 @@ async function main() {
   await bestEffort("Update planned features", async () => {
     const featurePlanResult = await runWithApprovals(
       coordinator,
-      "Update memory-bank/features.md before implementation. " +
-        "For any feature in this task that is not already implemented, ensure it appears in 'Planned'. " +
-        "If the feature is in 'Backlog', keep it in backlog while planned unless you clearly split it into sub-items. " +
-        "Do not duplicate the same item across sections with different wording. " +
+      "Update memory-bank/features.md before implementation for only this workflow task. " +
+        `Current task: ${task}. ` +
+        "Add only the specific feature item(s) being actively worked now to 'Planned'. " +
+        "Do not copy backlog wholesale and do not add unrelated backlog items to 'Planned'. " +
+        "If no active feature item applies, keep 'Planned' as '(none)'. " +
+        "Avoid duplicate bullet items across 'Implemented', 'Planned', and 'Backlog'. " +
         "Preserve existing unrelated items. Use read_file then write_file."
     );
     steps.push(formatStep("Feature Plan Log", String(featurePlanResult.finalOutput ?? "")));
@@ -139,11 +141,13 @@ async function main() {
   await bestEffort("Update implemented features", async () => {
     const featureDoneResult = await runWithApprovals(
       coordinator,
-      "Update memory-bank/features.md after implementation. " +
-        "For each feature completed in this task: add it to 'Implemented', remove it from 'Planned', and remove it from 'Backlog'. " +
-        "Leave partially completed items in 'Backlog' (and optionally 'Planned' if still in progress). " +
-        "Preserve existing unrelated items and avoid duplicate entries across sections. " +
-        "Use read_file then write_file."
+      "Update memory-bank/features.md after implementation for only this workflow task. " +
+        `Current task: ${task}. ` +
+        "For each fully completed feature item in this task: add to 'Implemented' and remove from 'Planned' and 'Backlog'. " +
+        "For partially completed items, keep them in 'Planned' only if active next-step work remains; otherwise move them back to 'Backlog'. " +
+        "If no active work remains after this run, set 'Planned' to '(none)'. " +
+        "Ensure no duplicate bullet items across 'Implemented', 'Planned', and 'Backlog'. " +
+        "Preserve existing unrelated items. Use read_file then write_file."
     );
     steps.push(formatStep("Feature Done Log", String(featureDoneResult.finalOutput ?? "")));
   });
